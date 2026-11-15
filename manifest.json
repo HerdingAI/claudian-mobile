@@ -1,0 +1,10 @@
+{
+  "id": "claudian-mobile",
+  "name": "Claudian Mobile",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Mobile-compatible Claudian chat & back-and-forth voice client synced with your workstation via Tailscale Bridge.",
+  "author": "Carlos Rivero",
+  "authorUrl": "https://github.com/HerdingAI/claudian-mobile",
+  "isDesktopOnly": false
+}

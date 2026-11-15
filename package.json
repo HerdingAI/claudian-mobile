@@ -1,0 +1,19 @@
+{
+  "name": "claudian-mobile",
+  "version": "0.1.0",
+  "description": "Mobile-compatible Claudian chat and back-and-forth voice client synced to your workstation via Tailscale Bridge.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "test": "node --test tests/*.test.mjs",
+    "package": "npm run build && mkdir -p dist && zip -j dist/claudian-mobile-0.1.0.zip manifest.json main.js styles.css"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.24.0",
+    "obsidian": "^1.7.2",
+    "typescript": "^5.6.0"
+  }
+}
