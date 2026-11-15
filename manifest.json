@@ -1,6 +1,6 @@
 {
-  "id": "claudian-mobile",
-  "name": "Claudian Mobile",
+  "id": "claudian-bridge-mobile",
+  "name": "Claudian Bridge Mobile",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "Mobile-compatible Claudian chat & back-and-forth voice client synced with your workstation via Tailscale Bridge.",
