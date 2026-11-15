@@ -49,7 +49,7 @@ export const DEFAULT_MOBILE_SETTINGS: ClaudianMobileSettings = {
   speechRate: 1.05,
   autoSpeakReplies: true,
   vadThreshold: 0.015,
-  vadSilenceMs: 750,
+  vadSilenceMs: 1800,
   minSpeechMs: 350,
   lastSessionId: "",
   conciseMobilePrompt: true,
