@@ -57,13 +57,19 @@ Tap **Test** to verify connectivity to your bridge, Whisper STT, and Kokoro TTS.
 2. If using **Obsidian Sync**, enable **Installed community plugins** and **Active community plugin list** on both desktop and mobile, then let your vault sync.
 3. Open **Claudian Mobile** from the sidebar/ribbon, select a session (or tap `+`), and use the **Mic** (Push-to-Talk) or **Waveform** (Hands-Free) button. Grant microphone permission when prompted.
 
-> **Tip**: For **screen-off** voice calls (like a normal phone call), you can also install the companion **Claudian Call** Android app served at `http://<your-bridge-host>:8790/apk`.
+> **Tip**: For **screen-off** voice calls (like a normal phone call), you can also install the companion **[Claudian Call](https://github.com/HerdingAI/claudian-call)** Android app (also served by [Claudian Bridge](https://github.com/HerdingAI/claudian-bridge) at `http://<your-bridge-host>:8790/apk`).
 
 ## Troubleshooting
 
 - **Bridge offline**: Verify Tailscale is connected on your phone and `claudian-bridge` is listening on port `8790`.
 - **No audio / quiet speaker on Android**: Toggle **Loud Speaker** mode (disables barge-in mic capture during playback so Android routes audio through the media speaker instead of the call earpiece).
 - **401 Unauthorized**: Double-check that your **Bridge Auth Token** matches `~/.config/claudian-bridge/config.json`.
+
+## Claudian Suite
+
+- **[Claudian Bridge](https://github.com/HerdingAI/claudian-bridge)** — Workstation HTTP/SSE server required by Claudian Mobile (exposes Claude Code, Antigravity, OpenCode, `faster-whisper` STT, and Kokoro TTS).
+- **[Claudian Call](https://github.com/HerdingAI/claudian-call)** — Native Android companion app for screen-off voice calls over `claudian-bridge`.
+- **[Claudian Voice](https://github.com/HerdingAI/claudian-voice)** — Desktop Obsidian plugin adding local `faster-whisper` STT and Kokoro TTS directly to Claudian.
 
 ## License
 
