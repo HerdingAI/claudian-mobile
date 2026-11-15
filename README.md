@@ -9,7 +9,7 @@ Mobile-compatible (`isDesktopOnly: false`) Obsidian plugin that brings **Claude 
 - **Push-to-Talk & Hands-Free Voice**: Records 16 kHz mono WAV in-memory, streams raw `audio/wav` to your workstation's `faster-whisper` worker (`750ms` VAD silence), streams replies token-by-token, and speaks completed sentences/lines via **Kokoro TTS** (with device Web Speech fallback).
 - **Noise-Resistant Barge-In & Android Loudspeaker Toggle**: Uses a `215 Hz – 3.4 kHz` speech-band filter, ZCR gate (`0.02..0.32`), and adaptive noise floor to ignore non-speech bumps/hiss during barge-in; plays Kokoro WAV via WebAudio `AudioContext` for full speaker volume on Android, with a one-tap **Loud Speaker / Barge-In** toggle and `450ms` post-TTS cooldown.
 - **Resilient Reconnect**: Automatically retries transient network/5xx errors and refreshes sessions when returning to the app (`visibilitychange`) or regaining connectivity (`online`).
-- **Sync-Ready Configuration**: Configure the Bridge URL and Auth Token once on desktop; Obsidian Sync carries `.obsidian/plugins/claudian-mobile/` to your phone automatically.
+- **Sync-Ready Configuration**: Configure the Bridge URL and Auth Token once on desktop; Obsidian Sync carries `.obsidian/plugins/claudian-bridge-mobile/` to your phone automatically.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Mobile-compatible (`isDesktopOnly: false`) Obsidian plugin that brings **Claude 
 
 ### Option 1: From GitHub Releases (Recommended)
 1. Download `claudian-mobile-0.1.0.zip` (or `manifest.json`, `main.js`, `styles.css`) from the [Releases](https://github.com/HerdingAI/claudian-mobile/releases) page.
-2. Extract the files into `<your-vault>/.obsidian/plugins/claudian-mobile/`.
+2. Extract the files into `<your-vault>/.obsidian/plugins/claudian-bridge-mobile/`.
 3. Enable **Claudian Mobile** in **Settings → Community plugins**.
 
 ### Option 2: Via BRAT
@@ -37,7 +37,7 @@ npm install
 npm test
 npm run package
 ```
-Extract `dist/claudian-mobile-0.1.0.zip` into `<your-vault>/.obsidian/plugins/claudian-mobile/`.
+Extract `dist/claudian-mobile-0.1.0.zip` into `<your-vault>/.obsidian/plugins/claudian-bridge-mobile/`.
 
 ## Setup Guide
 

@@ -152,7 +152,7 @@ export class ClaudianMobileSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Voice barge-in while speaking")
       .setDesc(
-        "Keep mic open during playback to interrupt by talking. Off (default) gives full loudspeaker volume on iOS; turn on when using headphones."
+        "Keep mic open during playback to interrupt by talking. On by default (recommended with headphones). Turn off for full loudspeaker volume on iOS."
       )
       .addToggle((tg) =>
         tg

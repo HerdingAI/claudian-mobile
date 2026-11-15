@@ -1,19 +1,17 @@
 import { requestUrl } from "obsidian";
+import { buildAuthHeaders, normalizeBaseUrl } from "./bridge-url";
+import { dispatchSseBlock, splitSseBuffer, splitSseText, SseHandlers } from "./sse";
 import { BridgeSession, ChatMessage, ClaudianMobileSettings } from "./types";
 
 export class BridgeClient {
   constructor(private getSettings: () => ClaudianMobileSettings) {}
 
   private baseUrl(): string {
-    return this.getSettings().bridgeUrl.replace(/\/+$/, "");
+    return normalizeBaseUrl(this.getSettings().bridgeUrl);
   }
 
   private headers(extra: Record<string, string> = {}): Record<string, string> {
-    const token = this.getSettings().authToken.trim();
-    return {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...extra,
-    };
+    return buildAuthHeaders(this.getSettings().authToken, extra);
   }
 
   private isTransientError(err: unknown): boolean {
@@ -124,31 +122,8 @@ export class BridgeClient {
     });
   }
 
-  private parseSseBlock(
-    block: string,
-    opts: {
-      onSession?: (sessionId: string) => void;
-      onText?: (fullText: string, delta: string) => void;
-      onDone?: (sessionId: string | null, fullText: string) => void;
-    }
-  ): void {
-    let eventName = "message";
-    let dataLine = "";
-    for (const line of block.split("\n")) {
-      if (line.startsWith("event:")) eventName = line.slice(6).trim();
-      else if (line.startsWith("data:")) dataLine = line.slice(5).trim();
-    }
-    if (!dataLine) return;
-    const payload = JSON.parse(dataLine);
-    if (eventName === "session" && payload.sessionId) {
-      opts.onSession?.(payload.sessionId);
-    } else if (eventName === "text") {
-      opts.onText?.(payload.fullText || "", payload.delta || "");
-    } else if (eventName === "done") {
-      opts.onDone?.(payload.sessionId || null, payload.text || "");
-    } else if (eventName === "error") {
-      throw new Error(payload.error || "Chat error");
-    }
+  private parseSseBlock(block: string, opts: SseHandlers): void {
+    dispatchSseBlock(block, opts);
   }
 
   async streamChat(opts: {
@@ -192,12 +167,9 @@ export class BridgeClient {
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        let sep: number;
-        while ((sep = buffer.indexOf("\n\n")) !== -1) {
-          const block = buffer.slice(0, sep);
-          buffer = buffer.slice(sep + 2);
-          this.parseSseBlock(block, opts);
-        }
+        const split = splitSseBuffer(buffer);
+        buffer = split.rest;
+        for (const block of split.blocks) this.parseSseBlock(block, opts);
       }
       if (buffer.trim()) {
         this.parseSseBlock(buffer, opts);
@@ -212,7 +184,7 @@ export class BridgeClient {
         headers: this.headers({ "Content-Type": "application/json" }),
         body: payloadBody,
       });
-      for (const block of res.text.split("\n\n")) {
+      for (const block of splitSseText(res.text)) {
         if (block.trim()) this.parseSseBlock(block, opts);
       }
     }
