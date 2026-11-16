@@ -8,8 +8,8 @@ Mobile-compatible (`isDesktopOnly: false`) Obsidian plugin that brings **Claude 
 - **Same Sessions Everywhere**: Lists and resumes your workstation sessions, loading full message history so you can pick up coding or research threads from your phone.
 - **Push-to-Talk & Hands-Free Voice**: Records 16 kHz mono WAV in-memory, streams raw `audio/wav` to your workstation's `faster-whisper` worker (`1800ms` VAD silence), streams replies token-by-token, and speaks completed sentences/lines via **Kokoro TTS** (with device Web Speech fallback).
 - **Noise-Resistant Barge-In & Android Loudspeaker Toggle**: Uses a `215 Hz – 3.4 kHz` speech-band filter, ZCR gate (`0.02..0.32`), and adaptive noise floor to ignore non-speech bumps/hiss during barge-in; plays Kokoro WAV via WebAudio `AudioContext` for full speaker volume on Android, with a one-tap **Loud Speaker / Barge-In** toggle and `450ms` post-TTS cooldown.
-- **Resilient Reconnect**: Automatically retries transient network/5xx errors and refreshes sessions when returning to the app (`visibilitychange`) or regaining connectivity (`online`).
-- **Sync-Ready Configuration**: Configure the Bridge URL and Auth Token once on desktop; Obsidian Sync carries `.obsidian/plugins/claudian-bridge-mobile/` to your phone automatically.
+- **Resilient Background Jobs & Reconnect**: Submits turns via `POST /jobs` (`Idempotency-Key` deduplication) and reconnects via `GET /jobs/:id/events` (`Last-Event-ID` replay), refreshing sessions on `visibilitychange` or `online` without duplicating runs.
+- **Sync-Ready Configuration (Security Note)**: The **Bridge Auth Token** field is masked (`password` input). Because Obsidian Sync carries `.obsidian/plugins/claudian-bridge-mobile/data.json`, avoid syncing vaults containing your token to untrusted devices (and use per-device tokens from `claudian-bridge`).
 
 ## Prerequisites
 
