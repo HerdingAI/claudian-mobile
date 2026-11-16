@@ -99,11 +99,11 @@ test("sse: splitSseBuffer keeps an incomplete tail", () => {
   assert.equal(r.rest, "event: b\ndata: {");
 });
 
-test("sse: KNOWN BUG multiple data: lines keep only the last one", () => {
-  // KNOWN BUG — flips in M5: should join with "\n" => '{"fullText":"A\nB"}'-style payloads
+test("sse: multiple data: lines join with newline", () => {
   const p = parseSseBlock('event: text\ndata: {"fullText":\ndata: "A"}');
-  assert.equal(p.data, '"A"}');
-  assert.throws(() => dispatchSseBlock('event: text\ndata: {"fullText":\ndata: "A"}', {}));
+  assert.equal(p.data, '{"fullText":\n"A"}');
+  const got = collect(['event: text\ndata: {"fullText":\ndata: "A"}']);
+  assert.deepEqual(got.text, [["A", ""]]);
 });
 
 test("sse: CRLF line endings inside a block still parse (values are trimmed)", () => {
@@ -111,21 +111,17 @@ test("sse: CRLF line endings inside a block still parse (values are trimmed)", (
   assert.deepEqual(got.text, [["x", "x"]]);
 });
 
-test("sse: KNOWN BUG \\r\\n\\r\\n separators are not recognized by the splitter", () => {
-  // KNOWN BUG — flips in M5: a CRLF stream should yield 2 blocks, yields 0 complete blocks.
+test("sse: \\r\\n\\r\\n separators are recognized by the splitter", () => {
   const stream = 'event: text\r\ndata: {"fullText":"a","delta":"a"}\r\n\r\nevent: done\r\ndata: {"text":"a"}\r\n\r\n';
   const r = splitSseBuffer(stream);
-  assert.deepEqual(r.blocks, []);
-  assert.equal(r.rest, stream);
-  // KNOWN BUG — flips in M5: and the fallback path treats the whole text as one block (last data wins).
-  assert.equal(splitSseText(stream).length, 1);
+  assert.equal(r.blocks.length, 2);
+  assert.equal(r.rest, "");
   const got = collect(splitSseText(stream));
-  assert.equal(got.text.length, 0);
+  assert.equal(got.text.length, 1);
   assert.equal(got.done.length, 1);
 });
 
-test("sse: KNOWN BUG only \\n\\n splits blocks (no lone \\r separators)", () => {
-  // KNOWN BUG — flips in M5
-  assert.equal(splitSseText("a\r\rb").length, 1);
+test("sse: \\r\\r and \\n\\n both split blocks", () => {
+  assert.equal(splitSseText("a\r\rb").length, 2);
   assert.equal(splitSseText("a\n\nb").length, 2);
 });

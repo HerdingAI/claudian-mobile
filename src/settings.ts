@@ -29,16 +29,18 @@ export class ClaudianMobileSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Bridge Auth Token")
-      .setDesc("Bearer token from ~/.config/claudian-bridge/config.json.")
-      .addText((txt) =>
-        txt
+      .setDesc("Bearer token from ~/.config/claudian-bridge/config.json. Warning: plugin data.json syncs with Obsidian Sync — avoid syncing vaults to untrusted devices.")
+      .addText((txt) => {
+        txt.inputEl.type = "password";
+        txt.inputEl.autocomplete = "off";
+        return txt
           .setPlaceholder("Paste token...")
           .setValue(this.plugin.settings.authToken)
           .onChange(async (val) => {
             this.plugin.settings.authToken = val.trim();
             await this.plugin.saveSettings();
-          })
-      );
+          });
+      });
 
     new Setting(containerEl)
       .setName("Test Bridge Connection")

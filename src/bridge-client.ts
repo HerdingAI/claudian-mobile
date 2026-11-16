@@ -147,46 +147,76 @@ export class BridgeClient {
     });
 
     try {
-      const resp = await fetch(`${this.baseUrl()}/chat`, {
+      const idempotencyKey =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+      const createRes = await fetch(`${this.baseUrl()}/jobs`, {
         method: "POST",
-        headers: this.headers({ "Content-Type": "application/json" }),
+        headers: this.headers({ "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }),
         body: payloadBody,
         signal: opts.signal,
       });
-
-      if (!resp.ok || !resp.body) {
-        throw new Error(`Bridge chat error (${resp.status})`);
+      if (!createRes.ok) {
+        throw new Error(`Bridge job error (${createRes.status})`);
       }
+      const created = (await createRes.json()) as { job?: { id?: string } };
+      const jobId = created.job?.id;
+      if (!jobId) throw new Error("Missing job id from bridge");
 
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      let lastEventId = 0;
+      let doneReceived = false;
+      const wrappedOpts = {
+        ...opts,
+        onEventId: (id: number) => {
+          if (id > lastEventId) lastEventId = id;
+        },
+        onDone: (sid: string | null, text: string) => {
+          doneReceived = true;
+          opts.onDone?.(sid, text);
+        },
+      };
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const split = splitSseBuffer(buffer);
-        buffer = split.rest;
-        for (const block of split.blocks) this.parseSseBlock(block, opts);
-      }
-      if (buffer.trim()) {
-        this.parseSseBlock(buffer, opts);
+      for (let attempt = 0; attempt < 3 && !doneReceived; attempt++) {
+        try {
+          const evHeaders = lastEventId > 0 ? this.headers({ "Last-Event-ID": String(lastEventId) }) : this.headers();
+          const resp = await fetch(`${this.baseUrl()}/jobs/${encodeURIComponent(jobId)}/events`, {
+            method: "GET",
+            headers: evHeaders,
+            signal: opts.signal,
+          });
+          if (!resp.ok || !resp.body) throw new Error(`Job events error (${resp.status})`);
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const split = splitSseBuffer(buffer);
+            buffer = split.rest;
+            for (const block of split.blocks) this.parseSseBlock(block, wrappedOpts);
+          }
+          if (buffer.trim()) this.parseSseBlock(buffer, wrappedOpts);
+        } catch (err) {
+          if (opts.signal?.aborted || doneReceived || attempt === 2) throw err;
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        }
       }
       return;
     } catch (fetchErr) {
-      if (opts.signal?.aborted) throw fetchErr;
-      // Fallback to Obsidian native requestUrl (bypasses mobile WebView HTTP/ATS limits)
-      const res = await requestUrl({
-        url: `${this.baseUrl()}/chat`,
-        method: "POST",
-        headers: this.headers({ "Content-Type": "application/json" }),
-        body: payloadBody,
-      });
-      for (const block of splitSseText(res.text)) {
-        if (block.trim()) this.parseSseBlock(block, opts);
-      }
+      throw fetchErr;
     }
+  }
+
+  async resolveApproval(approvalId: string, decision: "allow" | "deny"): Promise<void> {
+    const res = await requestUrl({
+      url: `${this.baseUrl()}/approvals/${encodeURIComponent(approvalId)}`,
+      method: "POST",
+      headers: this.headers({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ decision }),
+    });
+    if (res.status >= 400) throw new Error(`Approval failed (${res.status})`);
   }
 }
