@@ -580,6 +580,22 @@ export class ClaudianMobileView extends ItemView {
             for (const s of sentences) this.tts.enqueue(s);
           }
         },
+        onPermissionRequest: (req) => {
+          if (ctrl.signal.aborted) return;
+          if (speakReply) this.tts.enqueue(req.summary);
+          const bar = this.messagesEl.createDiv({ cls: "claudian-approval-bar" });
+          bar.createSpan({ text: `${req.summary} ` });
+          const allowBtn = bar.createEl("button", { text: "Allow" });
+          const denyBtn = bar.createEl("button", { text: "Deny" });
+          allowBtn.addEventListener("click", () => {
+            bar.remove();
+            void this.bridge.resolveApproval(req.id, "allow");
+          });
+          denyBtn.addEventListener("click", () => {
+            bar.remove();
+            void this.bridge.resolveApproval(req.id, "deny");
+          });
+        },
         onDone: (sid, fullText) => {
           if (ctrl.signal.aborted) return;
           if (sid) this.activeSessionId = sid;

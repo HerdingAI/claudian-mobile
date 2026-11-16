@@ -132,6 +132,8 @@ export class BridgeClient {
     signal?: AbortSignal;
     onSession?: (sessionId: string) => void;
     onText?: (fullText: string, delta: string) => void;
+    onPermissionRequest?: (req: { id: string; jobId: string; tool: string; summary: string; risk: string }) => void;
+    onPermissionResolved?: (id: string) => void;
     onDone?: (sessionId: string | null, fullText: string) => void;
   }): Promise<void> {
     const s = this.getSettings();
